@@ -335,35 +335,47 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 
-  // funzione che modifica pixelData in base a istruzione tradotta
-  function operazioneTransistor(array, Yi, Yf, Xi, Xf, action) {
+  // funzione che modifica pixelData in base a istruzione
+  function operazioneTransistor(targetDisplay, bulk) {
+    let Xi = bulk[0]
+    let Yi = bulk[1]
+    let Xf = bulk[2]
+    let Yf = bulk[3]
+    let action = bulk[4]
+
     for (let t = Yi; t <= Yf; t++) {
       for (let i = Xi; i < Xf + 1; i++) {
         if (action === 'n')
-          array[t][i] = 1;
+          targetDisplay[t][i] = 1;
         else if ( action === 'f' )
-          array[t][i] = 0;
+          targetDisplay[t][i] = 0;
         else 
-          array[t][i] = array[t][i] == 0 ? 1 : 0;
+          targetDisplay[t][i] = targetDisplay[t][i] == 0 ? 1 : 0;
       }
     }
   }
 
   // funzione che traduce istruzione
-  function traduzioneMacchina(istruzione, functionToApply, targetDisplay) {
+  function traduzioneMacchina(istruzione) {
+    let bulk = []
     let a = istruzione
 
     let grezzoCi = a.slice(a.indexOf(' ', 5), a.indexOf(' thr'));
     let Xi = Number(grezzoCi.slice(0, grezzoCi.indexOf(',')));
+    bulk.push(Xi);
     let Yi = Number(grezzoCi.slice(grezzoCi.indexOf(',') + 1));
+    bulk.push(Yi);
 
     let grezzoCf = a.slice(a.indexOf('gh') + 3);
     let Xf = Number(grezzoCf.slice(0, grezzoCf.indexOf(',')));
+    bulk.push(Xf);
     let Yf = Number(grezzoCf.slice(grezzoCf.indexOf(',') + 1));
+    bulk.push(Yf);
 
     let action = a[6]
+    bulk.push(action);
 
-    functionToApply(targetDisplay, Yi, Yf, Xi, Xf, action)
+    return bulk;
   }
 
   function drawPixelsPeriodically(listaIstruzioni) {
@@ -371,8 +383,7 @@ document.addEventListener("DOMContentLoaded", function() {
   
     const intervalId = setInterval(() => {
       if (currentIndex < listaIstruzioni.length) {
-        const istruzione = listaIstruzioni[currentIndex];
-        traduzioneMacchina(istruzione, operazioneTransistor, pixelData);
+        operazioneTransistor(pixelData, traduzioneMacchina(listaIstruzioni[currentIndex]));
         drawPixels();
         currentIndex++;
       } else {
