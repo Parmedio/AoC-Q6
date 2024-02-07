@@ -386,10 +386,11 @@ document.addEventListener("DOMContentLoaded", function() {
         operazioneTransistor(pixelData, traduzioneMacchina(listaIstruzioni[currentIndex]));
         drawPixels();
         currentIndex++;
+        console.log(`Ho eseguito la istruzione nr ${currentIndex}`);
       } else {
         console.log ('ho finito');
         clearInterval(intervalId);
       }
-    }, 1000);
+    }, 100);
   }
 });
