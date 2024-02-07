@@ -307,58 +307,70 @@ document.addEventListener("DOMContentLoaded", function() {
 
   const instructions = istruzioni.trim().split('\n');
 
-  // instructions.forEach(console.log);
-
   // Array di 1000 array, ognuno contenente 1000 elementi con valore 0 o 1
   const pixelData = createNewSchermoLuci();
+
+  // Array che tiene traccia delle aree modificate del canvas
+  let dirtyRects = [];
 
   // Dimensioni del singolo pixel
   const pixelSize = 1;
 
-  // Disegna i pixel in base ai dati
-  drawPixels();
+  // Colora tutto di nero inizialmente
+  fillBlack();
 
+  // Avvia l'esecuzione periodica delle istruzioni
   drawPixelsPeriodically(instructions);
 
   function createNewSchermoLuci() {
     return Array.from({ length: 1000 }, () => Array(1000).fill(0));
   }
 
-  function drawPixels() {
-    for (let y = 0; y < 1000; y++) {
-      for (let x = 0; x < 1000; x++) {
-        // Imposta il colore in base al valore
-        ctx.fillStyle = pixelData[y][x] === 1 ? "white" : "black";
-        // Disegna il pixel
-        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
-      }
-    }
+  function fillBlack() {
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 
-  // funzione che modifica pixelData in base a istruzione
+  function drawPixels() {
+    // Disegna solo le aree modificate
+    dirtyRects.forEach(rect => {
+      const [x, y, width, height] = rect;
+      for (let dy = 0; dy < height; dy++) {
+        for (let dx = 0; dx < width; dx++) {
+          const pixelX = x + dx;
+          const pixelY = y + dy;
+          ctx.fillStyle = pixelData[pixelY][pixelX] === 1 ? "white" : "black";
+          ctx.fillRect(pixelX * pixelSize, pixelY * pixelSize, pixelSize, pixelSize);
+        }
+      }
+    });
+
+    // Resetta l'elenco delle aree modificate
+    dirtyRects = [];
+  }
+
   function operazioneTransistor(targetDisplay, bulk) {
-    let Xi = bulk[0]
-    let Yi = bulk[1]
-    let Xf = bulk[2]
-    let Yf = bulk[3]
-    let action = bulk[4]
+    let Xi = bulk[0];
+    let Yi = bulk[1];
+    let Xf = bulk[2];
+    let Yf = bulk[3];
+    let action = bulk[4];
 
     for (let t = Yi; t <= Yf; t++) {
       for (let i = Xi; i < Xf + 1; i++) {
-        if (action === 'n')
-          targetDisplay[t][i] = 1;
-        else if ( action === 'f' )
-          targetDisplay[t][i] = 0;
-        else 
-          targetDisplay[t][i] = targetDisplay[t][i] == 0 ? 1 : 0;
+        if (action === 'n') targetDisplay[t][i] = 1;
+        else if (action === 'f') targetDisplay[t][i] = 0;
+        else targetDisplay[t][i] = targetDisplay[t][i] === 0 ? 1 : 0;
+
+        // Aggiungi l'area modificata alla lista delle aree sporche
+        dirtyRects.push([i, t, 1, 1]);
       }
     }
   }
 
-  // funzione che traduce istruzione
   function traduzioneMacchina(istruzione) {
-    let bulk = []
-    let a = istruzione
+    let bulk = [];
+    let a = istruzione;
 
     let grezzoCi = a.slice(a.indexOf(' ', 5), a.indexOf(' thr'));
     let Xi = Number(grezzoCi.slice(0, grezzoCi.indexOf(',')));
@@ -372,7 +384,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let Yf = Number(grezzoCf.slice(grezzoCf.indexOf(',') + 1));
     bulk.push(Yf);
 
-    let action = a[6]
+    let action = a[6];
     bulk.push(action);
 
     return bulk;
@@ -380,17 +392,17 @@ document.addEventListener("DOMContentLoaded", function() {
 
   function drawPixelsPeriodically(listaIstruzioni) {
     let currentIndex = 0;
-  
+
     const intervalId = setInterval(() => {
       if (currentIndex < listaIstruzioni.length) {
         operazioneTransistor(pixelData, traduzioneMacchina(listaIstruzioni[currentIndex]));
         drawPixels();
         currentIndex++;
-        console.log(`Ho eseguito la istruzione nr ${currentIndex}`);
+        console.log(`Ho eseguito l'istruzione nr ${currentIndex}`);
       } else {
-        console.log ('ho finito');
+        console.log ('Ho finito');
         clearInterval(intervalId);
       }
-    }, 100);
+    }, 800);
   }
 });
