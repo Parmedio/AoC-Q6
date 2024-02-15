@@ -334,15 +334,9 @@ document.addEventListener("DOMContentLoaded", function() {
   function drawPixels() {
     // Disegna solo le aree modificate
     dirtyRects.forEach(rect => {
-      const [x, y, width, height] = rect;
-      for (let dy = 0; dy < height; dy++) {
-        for (let dx = 0; dx < width; dx++) {
-          const pixelX = x + dx;
-          const pixelY = y + dy;
-          ctx.fillStyle = pixelData[pixelY][pixelX] === 1 ? "white" : "black";
-          ctx.fillRect(pixelX * pixelSize, pixelY * pixelSize, pixelSize, pixelSize);
-        }
-      }
+        const [x, y] = rect; // Ignora width e height
+        ctx.fillStyle = pixelData[y][x] === 1 ? "white" : "black";
+        ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
     });
 
     // Resetta l'elenco delle aree modificate
@@ -350,11 +344,7 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 
   function operazioneTransistor(targetDisplay, bulk) {
-    let Xi = bulk[0];
-    let Yi = bulk[1];
-    let Xf = bulk[2];
-    let Yf = bulk[3];
-    let action = bulk[4];
+    const [Xi, Yi, Xf, Yf, action] = bulk;
 
     for (let t = Yi; t <= Yf; t++) {
       for (let i = Xi; i < Xf + 1; i++) {
@@ -363,7 +353,7 @@ document.addEventListener("DOMContentLoaded", function() {
         else targetDisplay[t][i] = targetDisplay[t][i] === 0 ? 1 : 0;
 
         // Aggiungi l'area modificata alla lista delle aree sporche
-        dirtyRects.push([i, t, 1, 1]);
+        dirtyRects.push([i, t]);
       }
     }
   }
@@ -403,6 +393,6 @@ document.addEventListener("DOMContentLoaded", function() {
         console.log ('Ho finito');
         clearInterval(intervalId);
       }
-    }, 800);
+    }, 600);
   }
 });
